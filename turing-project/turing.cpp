@@ -43,6 +43,76 @@ private:
     set<string> F;
     int N;
     set<Delta> D;
+    bool CheckinQ(string s){
+        set<string>::iterator iter = Q.find(s);
+        if(iter==Q.end()){
+            return false;
+        }
+        return true;
+    }
+    bool CheckinS(char s){
+        set<char>::iterator iter = S.find(s);
+        if(iter==S.end()){
+            return false;
+        }
+        return true;
+    }
+    bool CheckinG(char s){
+        set<char>::iterator iter = G.find(s);
+        if(iter==G.end()){
+            return false;
+        }
+        return true;
+    }
+    bool CheckinF(string s){
+        set<string>::iterator iter = F.find(s);
+        if(iter==F.end()){
+            return false;
+        }
+        return true;
+    }
+    void PrintParser(){
+        set<string>::iterator iter1 = Q.begin();
+        while (iter1!=Q.end()){
+            cout<<"\""<<*iter1<<"\",";
+            iter1++;
+        }
+        cout<<endl;
+
+        set<char>::iterator iter2 = S.begin();
+        while (iter2!=S.end()){
+            cout<<"\""<<*iter2<<"\",";
+            iter2++;
+        }
+        cout<<endl;
+
+        set<char>::iterator iter3 = G.begin();
+        while (iter3!=G.end()){
+            cout<<"\""<<*iter3<<"\",";
+            iter3++;
+        }
+        cout<<endl;
+
+        cout<<"\""<<q0<<"\""<<endl;
+
+        cout<<"\""<<B<<"\""<<endl;
+
+        set<string>::iterator iter4 = F.begin();
+        while (iter4!=F.end()){
+            cout<<"\""<<*iter4<<"\",";
+            iter4++;
+        }
+        cout<<endl;
+
+        cout<<"\""<<N<<"\""<<endl;
+
+        set<Delta>::iterator iter5 = D.begin();
+        while (iter5!=D.end()){
+            (*iter5).Print();
+            iter5++;
+        }
+        cout<<endl;
+    }
 public:
     TuringMachine(char *tm_filename){
         ifstream infile;
@@ -178,9 +248,10 @@ public:
                         flag = 1;
                     }
                     else if((str[i] == ' ' || i == str.length()-1) && flag == 1){
+                        if(i == str.length()-1 && str[i] != ' ') i ++;
                         p2 = i;
-                        if(i == str.length()-1) i ++;
                         string tmp_d = str.substr(p1,p2-p1);
+
                         switch (cnt){
                             case 0:
                                 d.old_states = tmp_d;
@@ -210,125 +281,61 @@ public:
         }
         infile.close();
     }
-    void Print(){
-        set<string>::iterator iter1 = Q.begin();
-        while (iter1!=Q.end()){
-            cout<<"\""<<*iter1<<"\",";
-            iter1++;
-        }
-        cout<<endl;
-
-        set<char>::iterator iter2 = S.begin();
-        while (iter2!=S.end()){
-            cout<<"\""<<*iter2<<"\",";
-            iter2++;
-        }
-        cout<<endl;
-
-        set<char>::iterator iter3 = G.begin();
-        while (iter3!=G.end()){
-            cout<<"\""<<*iter3<<"\",";
-            iter3++;
-        }
-        cout<<endl;
-
-        cout<<"\""<<q0<<"\""<<endl;
-
-        cout<<"\""<<B<<"\""<<endl;
-
-        set<string>::iterator iter4 = F.begin();
-        while (iter4!=F.end()){
-            cout<<"\""<<*iter4<<"\",";
-            iter4++;
-        }
-        cout<<endl;
-
-        cout<<"\""<<N<<"\""<<endl;
-
-        set<Delta>::iterator iter5 = D.begin();
-        while (iter5!=D.end()){
-            iter5->Print();
-            iter5++;
-        }
-        cout<<endl;
-    }
-    bool CheckinQ(string s){
-        set<string>::iterator iter = Q.find(s);
-        if(iter==Q.end()){
-            return false;
-        }
-        return true;
-    }
-    bool CheckinS(char s){
-        set<char>::iterator iter = S.find(s);
-        if(iter==S.end()){
-            return false;
-        }
-        return true;
-    }
-    bool CheckinG(char s){
-        set<char>::iterator iter = G.find(s);
-        if(iter==G.end()){
-            return false;
-        }
-        return true;
-    }
-    bool CheckinF(string s){
-        set<string>::iterator iter = F.find(s);
-        if(iter==F.end()){
-            return false;
-        }
-        return true;
-    }
-    void CheckTuringMachine(){
-        // Print();
+    
+    void CheckParser(){
+        // PrintParser();
         if(!CheckinQ(q0)){
-            fprintf(stderr, "syntax error\n");
+            fprintf(stderr, "syntax error q0\n");
             exit(0);
         }
 
         if(!CheckinG(B)){
-            fprintf(stderr, "syntax error\n");
+            fprintf(stderr, "syntax error B\n");
             exit(0);
         }
         set<string>::iterator iter1 = F.begin();
         while (iter1!=F.end()){
             if(!CheckinQ(*iter1)){
-                fprintf(stderr, "syntax error\n");
+                fprintf(stderr, "syntax error F\n");
                 exit(0);
             }
             iter1++;
         }
         set<Delta>::iterator iter2 = D.begin();
         while (iter2!=D.end()){
-            // if(!CheckinQ(*iter2->old_states) || !CheckinQ(*iter2->new_states)){
-            //     fprintf(stderr, "syntax error\n");
-            //     exit(0);
-            // }
-            // for (int i = 0; i < *iter2->old_signs.length();i++){
-            //     if(!CheckinG(*iter2->old_signs[i])){
-            //         fprintf(stderr, "syntax error\n");
-            //         exit(0);
-            //     }
-            // }
-            // for (int i = 0; i < *iter2->new_signs.length();i++){
-            //     if(!CheckinG(*iter2->new_signs[i])){
-            //         fprintf(stderr, "syntax error\n");
-            //         exit(0);
-            //     }
-            // }
-            // for (int i = 0; i < *iter2->directions.length();i++){
-            //     if(*iter2->directions[i]!='l' || *iter2->directions[i]!='r' || *iter2->directions[i]!='*'){
-            //         fprintf(stderr, "syntax error\n");
-            //         exit(0);
-            //     }
-            // }
+            if(!CheckinQ((*iter2).old_states) || !CheckinQ((*iter2).new_states)){
+                cout<<(*iter2).old_states<<endl;
+                cout<<!CheckinQ((*iter2).old_states)<<endl;
+                cout<<(*iter2).new_states<<";"<<endl;
+                cout<<!CheckinQ((*iter2).new_states)<<endl;
+                fprintf(stderr, "syntax error D_states\n");
+                exit(0);
+            }
+            for (int i = 0; i < (*iter2).old_signs.length();i++){
+                if(!CheckinG((*iter2).old_signs[i])){
+                    fprintf(stderr, "syntax error D_old_signs\n");
+                    exit(0);
+                }
+            }
+            for (int i = 0; i < (*iter2).new_signs.length();i++){
+                if(!CheckinG((*iter2).new_signs[i])){
+                    fprintf(stderr, "syntax error D_new_signs\n");
+                    exit(0);
+                }
+            }
+            for (int i = 0; i < (*iter2).directions.length();i++){
+                if((*iter2).directions[i]!='l' && (*iter2).directions[i]!='r' && (*iter2).directions[i]!='*'){
+                    cout<<(*iter2).directions[i]<<endl;
+                    fprintf(stderr, "syntax error D_direction\n");
+                    exit(0);
+                }
+            }
             iter2++;
         }
     }
 };
 int main(int argc, char **argv){
     TuringMachine tm = TuringMachine(argv[1]);
-    tm.CheckTuringMachine();
+    tm.CheckParser();
     return 0;
 }
