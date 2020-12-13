@@ -164,7 +164,6 @@ public:
             printf(" ^");
         }
         printf("\n");
-        cout<<pointer<<endl;
     }
 };
 class TuringMachine{
