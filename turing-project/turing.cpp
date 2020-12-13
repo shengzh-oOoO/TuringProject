@@ -31,8 +31,10 @@ class Tape{
 public:
     map<int,char> tape;
     int left,right,pointer;
-    Tape(){
+    char B;
+    Tape(char b){
         left = right = pointer = 0;
+        B = b;
     }
     void Left(int l){
         if(l < left) left = l;
@@ -46,7 +48,7 @@ public:
         int flag = 0;
         for(int i=left;i<right;i++){
             iter = tape.find(i);
-            if(iter != tape.end() && (*iter).second != '_'){
+            if(iter != tape.end() && (*iter).second != B){
                 l = i;
                 flag = 1;
                 break;
@@ -54,7 +56,7 @@ public:
         }
         for(int i= right-1; i>=l; i--){
             iter = tape.find(i);
-            if(iter != tape.end() && (*iter).second != '_'){
+            if(iter != tape.end() && (*iter).second != B){
                 r = i+1;
                 flag = 1;
                 break;
@@ -65,14 +67,14 @@ public:
         }
         for(int i = l; i < r; i++){
             iter = tape.find(i);
-            char ch = '_';
+            char ch = B;
             if(iter!=tape.end()){
                 ch = (*iter).second;
             }
             printf("%c", ch);
         }
         if(l==r){
-            printf("_");
+            printf("%c",B);
         }
         printf("\n");
     }
@@ -82,7 +84,7 @@ public:
         int flag = 0;
         for(int i=left;i<right;i++){
             iter = tape.find(i);
-            if(iter != tape.end() && (*iter).second != '_'){
+            if(iter != tape.end() && (*iter).second != B){
                 l = i;
                 flag = 1;
                 break;
@@ -90,7 +92,7 @@ public:
         }
         for(int i= right-1; i>=l; i--){
             iter = tape.find(i);
-            if(iter != tape.end() && (*iter).second != '_'){
+            if(iter != tape.end() && (*iter).second != B){
                 r = i+1;
                 flag = 1;
                 break;
@@ -118,7 +120,7 @@ public:
                 printf(" ");
             }
             iter = tape.find(i);
-            char ch = '_';
+            char ch = B;
             if(iter!=tape.end()){
                 ch = (*iter).second;
             }
@@ -130,7 +132,7 @@ public:
             for(int j = 1; j < strlen(str); j++){
                 printf(" ");
             }
-            printf(" _");
+            printf(" %c",B);
         }
         printf("\n");
         
@@ -260,7 +262,7 @@ private:
                 int p = Tapes.at(i).pointer;
                 map<int,char>::iterator iter;
                 iter = Tapes.at(i).tape.find(p);
-                char ch = '_';
+                char ch = B;
                 if(iter!=Tapes.at(i).tape.end()){
                     ch = (*iter).second;
                 }
@@ -588,7 +590,7 @@ public:
     }
     void Input(char *input){
         for(int i = 0; i < N; i++){
-            Tape t;
+            Tape t = Tape(B);
             Tapes.push_back(t);
         }
         for(int i = 0; i < strlen(input); i++){
