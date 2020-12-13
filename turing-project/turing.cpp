@@ -1,7 +1,10 @@
 #include<iostream>
 #include<fstream>
 #include<cstring>
+#include<cstdlib>
 #include<set>
+#include<map>
+#include<vector>
 
 using namespace std;
 class Delta{
@@ -21,20 +24,143 @@ public:
         if(this->old_signs != b.old_signs){
             return this->old_signs < b.old_signs;
         }
-        if(this->new_signs != b.new_signs){
-            return this->new_signs < b.new_signs;
-        }
-        if(this->directions != b.directions){
-            return this->directions < b.directions;
-        }
-        if(this->new_states != b.new_states){
-            return this->new_states < b.new_states;
-        }
         return false;
+    }
+};
+class Tape{
+public:
+    map<int,char> tape;
+    int left,right,pointer;
+    Tape(){
+        left = right = pointer = 0;
+    }
+    void Left(int l){
+        if(l < left) left = l;
+    }
+    void Right(int r){
+        if(r > right) right = r;
+    }
+    void PrintText(){
+        map<int,char>::iterator iter;
+        int l=left, r=right;
+        int flag = 0;
+        for(int i=left;i<right;i++){
+            iter = tape.find(i);
+            if(iter != tape.end() && (*iter).second != '_'){
+                l = i;
+                flag = 1;
+                break;
+            }
+        }
+        for(int i= right-1; i>=l; i--){
+            iter = tape.find(i);
+            if(iter != tape.end() && (*iter).second != '_'){
+                r = i+1;
+                flag = 1;
+                break;
+            }
+        }
+        if(flag == 0){
+            l = r = pointer;
+        }
+        for(int i = l; i < r; i++){
+            iter = tape.find(i);
+            char ch = '_';
+            if(iter!=tape.end()){
+                ch = (*iter).second;
+            }
+            printf("%c", ch);
+        }
+        if(l==r){
+            printf("_");
+        }
+        printf("\n");
+    }
+    void Print(int index){
+        map<int,char>::iterator iter;
+        int l=left, r=right;
+        int flag = 0;
+        for(int i=left;i<right;i++){
+            iter = tape.find(i);
+            if(iter != tape.end() && (*iter).second != '_'){
+                l = i;
+                flag = 1;
+                break;
+            }
+        }
+        for(int i= right-1; i>=l; i--){
+            iter = tape.find(i);
+            if(iter != tape.end() && (*iter).second != '_'){
+                r = i+1;
+                flag = 1;
+                break;
+            }
+        }
+        if(flag == 0){
+            l = r = pointer;
+        }
+        // left = l;
+        // right = r;
+        printf("Index%d :", index);
+        for(int i = l; i < r; i++){
+            printf(" %d", i);
+        }
+        if(l==r){
+            printf(" %d", pointer);
+        }
+        printf("\n");
+
+        printf("Tape%d  :", index);
+        for(int i = l; i < r; i++){
+            char str[10]={0};
+            sprintf(str,"%d",i);
+            for(int j = 1; j < strlen(str); j++){
+                printf(" ");
+            }
+            iter = tape.find(i);
+            char ch = '_';
+            if(iter!=tape.end()){
+                ch = (*iter).second;
+            }
+            printf(" %c", ch);
+        }
+        if(l==r){
+            char str[10]={0};
+            sprintf(str,"%d",pointer);
+            for(int j = 1; j < strlen(str); j++){
+                printf(" ");
+            }
+            printf(" _");
+        }
+        printf("\n");
+        
+        printf("Head%d  :", index);
+        for(int i = l; i < r; i++){
+            char str[10]={0};
+            sprintf(str,"%d",i);
+            for(int j = 1; j < strlen(str); j++){
+                printf(" ");
+            }
+            char ch = ' ';
+            if(i == pointer){
+                ch = '^';
+            }
+            printf(" %c", ch);
+        }
+        if(l==r){
+            char str[10]={0};
+            sprintf(str,"%d",pointer);
+            for(int j = 1; j < strlen(str); j++){
+                printf(" ");
+            }
+            printf(" ^");
+        }
+        printf("\n");
     }
 };
 class TuringMachine{
 private:
+    bool verbose;
     set<string> Q;
     set<char> S;
     set<char> G;
@@ -43,6 +169,10 @@ private:
     set<string> F;
     int N;
     set<Delta> D;
+    //---------//
+    vector<Tape> Tapes;
+    string State;
+
     bool CheckinQ(string s){
         set<string>::iterator iter = Q.find(s);
         if(iter==Q.end()){
@@ -113,13 +243,74 @@ private:
         }
         cout<<endl;
     }
+    void PrintTapes(int step, string state){
+        printf("Step   : %d\n", step);
+        for(int i = 0; i < N; i++){
+            Tapes.at(i).Print(i);
+        }
+        printf("State  :%s\n", state.c_str());
+        printf("---------------------------------------------\n");
+    }
+    int Run(){
+        int step = 0;
+        while(true){
+            string old_states = State;
+            string old_signs="";
+            for(int i = 0; i < N; i++){
+                int p = Tapes.at(i).pointer;
+                map<int,char>::iterator iter;
+                iter = Tapes.at(i).tape.find(p);
+                char ch = '_';
+                if(iter!=Tapes.at(i).tape.end()){
+                    ch = (*iter).second;
+                }
+                old_signs += ch;
+            }
+            Delta tmp;
+            tmp.old_states =State;
+            tmp.old_signs = old_signs;
+            set<Delta>::iterator iter = D.find(tmp);
+
+            if (iter == D.end()){
+                return 1;
+            }
+
+            for(int i = 0; i < N; i++){
+                int p = Tapes.at(i).pointer;
+                Tapes.at(i).tape[p]=(*iter).new_signs[i];
+            }
+            for(int i = 0; i < N; i++){
+                int p = Tapes.at(i).pointer;
+                if((*iter).directions[i] =='l'){
+                    Tapes.at(i).pointer =p - 1;
+                }
+                if((*iter).directions[i] =='r'){
+                    Tapes.at(i).pointer =p + 1;
+                }
+                if((*iter).directions[i] =='*'){
+                    Tapes.at(i).pointer =p;
+                }
+                Tapes.at(i).Left(Tapes.at(i).pointer);
+                Tapes.at(i).Right(Tapes.at(i).pointer+1);
+            }
+            State = (*iter).new_states;
+            step++;
+            if(verbose == true){
+                PrintTapes(step,State);
+            }
+            if(CheckinF(State)){
+                return 0;
+            }
+        }
+    }
 public:
-    TuringMachine(char *tm_filename){
+    TuringMachine(char *tm_filename, bool v){
+        verbose = v;
         ifstream infile;
         infile.open(tm_filename, ios::in);
         if(!infile.is_open()){
-            fprintf(stderr, "no file %s\n", tm_filename);
-            exit(-1);
+            fprintf(stderr, "syntax error\n");
+            exit(1);
         }
         while(!infile.eof()){
             string str;
@@ -153,6 +344,10 @@ public:
                         if(p1!=-1 && p2!=-1){
                             string tmp_q = str.substr(p1+1,p2-p1-1);
                             // cout<<tmp_q<<endl;
+                            if(Q.find(tmp_q) != Q.end()){
+                                fprintf(stderr, "syntax error\n");
+                                exit(1);
+                            }
                             Q.insert(tmp_q);
                         }
                     }
@@ -168,6 +363,10 @@ public:
                         if(flag == 1){
                             char tmp_s = str[i];
                             // cout<<tmp_s<<endl;
+                            if(S.find(tmp_s) != S.end()){
+                                fprintf(stderr, "syntax error\n");
+                                exit(1);
+                            }
                             S.insert(tmp_s);
                             flag = 0;
                         }
@@ -184,6 +383,10 @@ public:
                         if(flag == 1){
                             char tmp_g = str[i];
                             // cout<<tmp_g<<endl;
+                            if(G.find(tmp_g) != G.end()){
+                                fprintf(stderr, "syntax error\n");
+                                exit(1);
+                            }
                             G.insert(tmp_g);
                             flag = 0;
                         }
@@ -221,6 +424,10 @@ public:
                         if(p1!=-1 && p2!=-1){
                             string tmp_f = str.substr(p1+1,p2-p1-1);
                             // cout<<tmp_f<<endl;
+                            if(F.find(tmp_f) != F.end()){
+                                fprintf(stderr, "syntax error\n");
+                                exit(1);
+                            }
                             F.insert(tmp_f);
                         }
                     }
@@ -275,67 +482,180 @@ public:
                         flag = -1;
                     }
                 }
+                if(D.find(d) != D.end()){
+                    fprintf(stderr, "syntax error\n");
+                    exit(1);
+                }
                 D.insert(d);
             }
 
         }
         infile.close();
     }
-    
     void CheckParser(){
         // PrintParser();
         if(!CheckinQ(q0)){
-            fprintf(stderr, "syntax error q0\n");
-            exit(0);
+            fprintf(stderr, "syntax error\n");
+            exit(1);
         }
 
         if(!CheckinG(B)){
-            fprintf(stderr, "syntax error B\n");
-            exit(0);
+            fprintf(stderr, "syntax error\n");
+            exit(1);
         }
         set<string>::iterator iter1 = F.begin();
         while (iter1!=F.end()){
             if(!CheckinQ(*iter1)){
-                fprintf(stderr, "syntax error F\n");
-                exit(0);
+                fprintf(stderr, "syntax error\n");
+                exit(1);
             }
             iter1++;
         }
+        
         set<Delta>::iterator iter2 = D.begin();
         while (iter2!=D.end()){
             if(!CheckinQ((*iter2).old_states) || !CheckinQ((*iter2).new_states)){
-                cout<<(*iter2).old_states<<endl;
-                cout<<!CheckinQ((*iter2).old_states)<<endl;
-                cout<<(*iter2).new_states<<";"<<endl;
-                cout<<!CheckinQ((*iter2).new_states)<<endl;
-                fprintf(stderr, "syntax error D_states\n");
-                exit(0);
+                // cout<<(*iter2).old_states<<endl;
+                // cout<<!CheckinQ((*iter2).old_states)<<endl;
+                // cout<<(*iter2).new_states<<";"<<endl;
+                // cout<<!CheckinQ((*iter2).new_states)<<endl;
+                fprintf(stderr, "syntax error\n");
+                exit(1);
             }
             for (int i = 0; i < (*iter2).old_signs.length();i++){
                 if(!CheckinG((*iter2).old_signs[i])){
-                    fprintf(stderr, "syntax error D_old_signs\n");
-                    exit(0);
+                    fprintf(stderr, "syntax error\n");
+                    // cout<<(*iter2).old_signs[i]<<endl;
+                    exit(1);
                 }
             }
             for (int i = 0; i < (*iter2).new_signs.length();i++){
                 if(!CheckinG((*iter2).new_signs[i])){
-                    fprintf(stderr, "syntax error D_new_signs\n");
-                    exit(0);
+                    fprintf(stderr, "syntax error\n");
+                    exit(1);
                 }
             }
             for (int i = 0; i < (*iter2).directions.length();i++){
                 if((*iter2).directions[i]!='l' && (*iter2).directions[i]!='r' && (*iter2).directions[i]!='*'){
-                    cout<<(*iter2).directions[i]<<endl;
-                    fprintf(stderr, "syntax error D_direction\n");
-                    exit(0);
+                    fprintf(stderr, "syntax error\n");
+                    exit(1);
                 }
             }
             iter2++;
         }
+        set<char>::iterator iter3 = S.begin();
+        while (iter3!=S.end()){
+            if(!CheckinG(*iter3)){
+                fprintf(stderr, "syntax error\n");
+                exit(1);
+            }
+            iter3++;
+        }
+    }
+    void CheckInput(char *input){
+        int pointer = -1;
+        for(int i = 0;i < strlen(input); i++){
+            if(!CheckinS(input[i])){
+                pointer = i;
+                break;
+            }
+        }
+        if(verbose == true){
+            if(pointer != -1){
+                fprintf(stderr, "Input: %s\n", input);
+                fprintf(stderr, "==================== ERR ====================\n");
+                fprintf(stderr, "error: '%c' was not declared in the set of input symbols\n", input[pointer]);
+                fprintf(stderr, "Input: %s\n", input);
+                fprintf(stderr, "       ");
+                for(int i = 0; i < pointer; i++){
+                    fprintf(stderr, " ");
+                }
+                fprintf(stderr, "^\n");
+                fprintf(stderr, "==================== END ====================\n");
+                exit(1);
+            }
+            else{
+                cout<<"Input: "<<input<<endl;
+                cout<<"==================== RUN ===================="<<endl;
+            }
+        }
+        else{
+            if(pointer != -1){
+                fprintf(stderr, "illegal input\n");
+                exit(1);
+            }
+        }
+    }
+    void Input(char *input){
+        for(int i = 0; i < N; i++){
+            Tape t;
+            Tapes.push_back(t);
+        }
+        for(int i = 0; i < strlen(input); i++){
+            Tapes.at(0).tape[i]=input[i];
+            Tapes.at(0).Right(i+1);
+        }
+        State = q0;
+        if(verbose == true){
+            PrintTapes(0,State);
+        }
+        int ExitType = Run();
+        if(verbose == true){
+            printf("Result: ");
+            Tapes.at(0).PrintText();
+            printf("==================== END ====================\n");
+        }
+        else{
+            Tapes.at(0).PrintText();
+        }
     }
 };
 int main(int argc, char **argv){
-    TuringMachine tm = TuringMachine(argv[1]);
+    bool help = false;
+    bool verbose = false;
+    bool toomanypara = false;
+    int tmfile = -1;
+    int inputstr = -1;
+    // if(argc == 1){
+    //     fprintf(stderr, "Missing parameters\n");
+    //     exit(1);
+    // }
+    for (int i = 1; i < argc; i++){
+        if(strcmp(argv[i],"-h") == 0||strcmp(argv[i],"--help") == 0){
+            help = true;
+        }
+        else if(strcmp(argv[i],"-v") == 0||strcmp(argv[i],"--verbose")==0){
+            verbose = true;
+        }
+        else{
+
+            if(tmfile == -1){
+                tmfile = i;
+            }
+            else if(inputstr == -1){
+                inputstr = i;
+            }
+            else{
+                toomanypara = true;
+            }
+        }
+    }
+    if(help == true){
+        cout<<"usage: turing [-v|--verbose] [-h|--help] <tm> <input>"<<endl;
+        exit(0);
+    }
+    if(tmfile == -1 || inputstr == -1){
+        cout<<tmfile<<" "<<inputstr<<endl;
+        fprintf(stderr, "Missing parameters\n");
+        exit(1);
+    }
+    if(toomanypara == true){
+        fprintf(stderr, "Too many parameters\n");
+        exit(1);
+    }
+    TuringMachine tm = TuringMachine(argv[tmfile],verbose);
     tm.CheckParser();
+    tm.CheckInput(argv[inputstr]);
+    tm.Input(argv[inputstr]);
     return 0;
 }
