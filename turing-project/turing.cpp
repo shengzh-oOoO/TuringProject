@@ -101,6 +101,12 @@ public:
         if(flag == 0){
             l = r = pointer;
         }
+        if(pointer < l){
+            l = pointer;
+        }
+        if(pointer > r-1){
+            r = pointer+1;
+        }
         // left = l;
         // right = r;
         printf("Index%d :", index);
@@ -158,6 +164,7 @@ public:
             printf(" ^");
         }
         printf("\n");
+        cout<<pointer<<endl;
     }
 };
 class TuringMachine{
@@ -312,6 +319,9 @@ public:
         infile.open(tm_filename, ios::in);
         if(!infile.is_open()){
             fprintf(stderr, "syntax error\n");
+            if(verbose == true){
+                fprintf(stderr, "Open .tm file Error\n");
+            }
             exit(1);
         }
         while(!infile.eof()){
@@ -348,6 +358,9 @@ public:
                             // cout<<tmp_q<<endl;
                             if(Q.find(tmp_q) != Q.end()){
                                 fprintf(stderr, "syntax error\n");
+                                if(verbose == true){
+                                    fprintf(stderr, "Repeat in Q\n");
+                                }
                                 exit(1);
                             }
                             Q.insert(tmp_q);
@@ -367,6 +380,9 @@ public:
                             // cout<<tmp_s<<endl;
                             if(S.find(tmp_s) != S.end()){
                                 fprintf(stderr, "syntax error\n");
+                                if(verbose == true){
+                                    fprintf(stderr, "Repeat in S\n");
+                                }
                                 exit(1);
                             }
                             S.insert(tmp_s);
@@ -387,6 +403,9 @@ public:
                             // cout<<tmp_g<<endl;
                             if(G.find(tmp_g) != G.end()){
                                 fprintf(stderr, "syntax error\n");
+                                if(verbose == true){
+                                    fprintf(stderr, "Repeat in G\n");
+                                }
                                 exit(1);
                             }
                             G.insert(tmp_g);
@@ -428,6 +447,9 @@ public:
                             // cout<<tmp_f<<endl;
                             if(F.find(tmp_f) != F.end()){
                                 fprintf(stderr, "syntax error\n");
+                                if(verbose == true){
+                                    fprintf(stderr, "Repeat in F\n");
+                                }
                                 exit(1);
                             }
                             F.insert(tmp_f);
@@ -486,6 +508,9 @@ public:
                 }
                 if(D.find(d) != D.end()){
                     fprintf(stderr, "syntax error\n");
+                    if(verbose == true){
+                        fprintf(stderr, "Repeat in D\n");
+                    }
                     exit(1);
                 }
                 D.insert(d);
@@ -498,17 +523,26 @@ public:
         // PrintParser();
         if(!CheckinQ(q0)){
             fprintf(stderr, "syntax error\n");
+            if(verbose == true){
+                fprintf(stderr, "q0 not in Q\n");
+            }
             exit(1);
         }
 
         if(!CheckinG(B)){
             fprintf(stderr, "syntax error\n");
+            if(verbose == true){
+                fprintf(stderr, "B not in G\n");
+            }
             exit(1);
         }
         set<string>::iterator iter1 = F.begin();
         while (iter1!=F.end()){
             if(!CheckinQ(*iter1)){
                 fprintf(stderr, "syntax error\n");
+                if(verbose == true){
+                    fprintf(stderr, "some of F not in Q\n");
+                }
                 exit(1);
             }
             iter1++;
@@ -522,24 +556,57 @@ public:
                 // cout<<(*iter2).new_states<<";"<<endl;
                 // cout<<!CheckinQ((*iter2).new_states)<<endl;
                 fprintf(stderr, "syntax error\n");
+                if(verbose == true){
+                    fprintf(stderr, "some of Delta states not in Q\n");
+                }
+                exit(1);
+            }
+            if((*iter2).old_signs.length()!=N){
+                fprintf(stderr, "syntax error\n");
+                if(verbose == true){
+                    fprintf(stderr, "some of Delta old_signs length is not N\n");
+                }
                 exit(1);
             }
             for (int i = 0; i < (*iter2).old_signs.length();i++){
                 if(!CheckinG((*iter2).old_signs[i])){
                     fprintf(stderr, "syntax error\n");
+                    if(verbose == true){
+                        fprintf(stderr, "some of Delta old_signs not in Q\n");
+                    }   
                     // cout<<(*iter2).old_signs[i]<<endl;
                     exit(1);
                 }
             }
+            if((*iter2).new_signs.length()!=N){
+                fprintf(stderr, "syntax error\n");
+                if(verbose == true){
+                    fprintf(stderr, "some of Delta new_signs length is not N\n");
+                }
+                exit(1);
+            }
             for (int i = 0; i < (*iter2).new_signs.length();i++){
                 if(!CheckinG((*iter2).new_signs[i])){
                     fprintf(stderr, "syntax error\n");
+                    if(verbose == true){
+                        fprintf(stderr, "some of Delta new_signs not in Q\n");
+                    } 
                     exit(1);
                 }
+            }
+            if((*iter2).directions.length()!=N){
+                fprintf(stderr, "syntax error\n");
+                if(verbose == true){
+                    fprintf(stderr, "some of Delta directions length is not N\n");
+                }
+                exit(1);
             }
             for (int i = 0; i < (*iter2).directions.length();i++){
                 if((*iter2).directions[i]!='l' && (*iter2).directions[i]!='r' && (*iter2).directions[i]!='*'){
                     fprintf(stderr, "syntax error\n");
+                    if(verbose == true){
+                        fprintf(stderr, "some of Delta directions not in Q\n");
+                    } 
                     exit(1);
                 }
             }
@@ -549,6 +616,9 @@ public:
         while (iter3!=S.end()){
             if(!CheckinG(*iter3)){
                 fprintf(stderr, "syntax error\n");
+                if(verbose == true){
+                    fprintf(stderr, "some of S not in G\n");
+                } 
                 exit(1);
             }
             iter3++;
@@ -593,6 +663,7 @@ public:
             Tape t = Tape(B);
             Tapes.push_back(t);
         }
+
         for(int i = 0; i < strlen(input); i++){
             Tapes.at(0).tape[i]=input[i];
             Tapes.at(0).Right(i+1);
@@ -646,8 +717,7 @@ int main(int argc, char **argv){
         cout<<"usage: turing [-v|--verbose] [-h|--help] <tm> <input>"<<endl;
         exit(0);
     }
-    if(tmfile == -1 || inputstr == -1){
-        cout<<tmfile<<" "<<inputstr<<endl;
+    if(tmfile == -1){
         fprintf(stderr, "Missing parameters\n");
         exit(1);
     }
@@ -657,7 +727,15 @@ int main(int argc, char **argv){
     }
     TuringMachine tm = TuringMachine(argv[tmfile],verbose);
     tm.CheckParser();
-    tm.CheckInput(argv[inputstr]);
-    tm.Input(argv[inputstr]);
+    if(inputstr == -1){
+        char empty[10] = "";
+        tm.CheckInput(empty);
+        tm.Input(empty);
+    }
+    else{
+        tm.CheckInput(argv[inputstr]);
+        tm.Input(argv[inputstr]);
+    }
+    
     return 0;
 }
